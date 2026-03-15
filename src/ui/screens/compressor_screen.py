@@ -18,10 +18,12 @@ from logic import (
 
 
 QUALITY_PROFILES = {
-    "high": 18,
-    "balanced": 23,
-    "small": 28,
-    "tiny": 32,
+    # Community/common FFmpeg usage for H.264 (CRF method):
+    # ~18-20 near-original, 23 default, 26+ smaller files.
+    "highest": {"crf": 19, "audio_bitrate": "160k", "video_codec": "libx264"},
+    "balanced": {"crf": 23, "audio_bitrate": "128k", "video_codec": "libx264"},
+    "smaller": {"crf": 26, "audio_bitrate": "128k", "video_codec": "libx264"},
+    "tiny": {"crf": 30, "audio_bitrate": "96k", "video_codec": "libx264"},
 }
 
 
@@ -111,9 +113,9 @@ class CompressorScreen(ScreenBase):
                                 yield Label("Output format")
                                 self.format_select = Select(
                                     [
-                                        ("MP4", "mp4"),
-                                        ("MOV", "mov"),
+                                        ("MP4 (recommended)", "mp4"),
                                         ("MKV", "mkv"),
+                                        ("MOV", "mov"),
                                         ("WEBM", "webm"),
                                     ],
                                     value="mp4",
@@ -124,10 +126,10 @@ class CompressorScreen(ScreenBase):
                                 yield Label("Quality profile")
                                 self.quality_select = Select(
                                     [
-                                        ("High quality", "high"),
-                                        ("Balanced", "balanced"),
-                                        ("Small size", "small"),
-                                        ("Tiny size", "tiny"),
+                                        ("Highest quality (CRF 19)", "highest"),
+                                        ("Balanced (CRF 23, default)", "balanced"),
+                                        ("Smaller files (CRF 26)", "smaller"),
+                                        ("Tiny files (CRF 30)", "tiny"),
                                     ],
                                     value="balanced",
                                 )
@@ -138,7 +140,7 @@ class CompressorScreen(ScreenBase):
                                 self.preset_select = Select(
                                     [
                                         ("fast", "fast"),
-                                        ("medium", "medium"),
+                                        ("medium (recommended)", "medium"),
                                         ("slow", "slow"),
                                     ],
                                     value="medium",
@@ -244,7 +246,10 @@ class CompressorScreen(ScreenBase):
             return
 
         out_format, quality_key, preset = self._selected_values()
-        crf = QUALITY_PROFILES.get(quality_key, 23)
+        profile = QUALITY_PROFILES.get(quality_key, QUALITY_PROFILES["balanced"])
+        crf = int(profile["crf"])
+        video_codec = str(profile["video_codec"])
+        audio_bitrate = str(profile["audio_bitrate"])
         suffix = self.suffix_input.value.strip() or "_compressed"
 
         out_dir = self._get_output_directory()
@@ -260,6 +265,7 @@ class CompressorScreen(ScreenBase):
         total = len(self.source_paths)
         completed = 0
         failed = 0
+        not_smaller = 0
 
         self.progress_bar.display = True
         self.progress_bar.update(total=total, progress=0)
@@ -277,6 +283,8 @@ class CompressorScreen(ScreenBase):
                 output_path=out_path,
                 crf=crf,
                 preset=preset,
+                video_codec=video_codec,
+                audio_bitrate=audio_bitrate,
             )
 
             self.progress_label.update(
@@ -286,6 +294,9 @@ class CompressorScreen(ScreenBase):
 
             if success:
                 completed += 1
+                if os.path.exists(input_path) and os.path.exists(out_path):
+                    if os.path.getsize(out_path) >= os.path.getsize(input_path):
+                        not_smaller += 1
             else:
                 failed += 1
 
@@ -294,10 +305,15 @@ class CompressorScreen(ScreenBase):
         self.progress_bar.display = False
         self.progress_label.update("")
 
-        if failed == 0:
+        if failed == 0 and not_smaller == 0:
             self.show_status(f"✅ Done! {completed}/{total} file(s) processed", "success")
+        elif failed == 0:
+            self.show_status(
+                f"✅ Done with notes: {completed}/{total} processed, {not_smaller} not smaller than source.",
+                "warning",
+            )
         else:
             self.show_status(
-                f"⚠️ Finished with errors. Success: {completed}, Failed: {failed}",
+                f"⚠️ Finished with errors. Success: {completed}, Failed: {failed}, Not smaller: {not_smaller}",
                 "warning",
             )

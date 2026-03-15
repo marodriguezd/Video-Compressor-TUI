@@ -33,3 +33,15 @@ PYTHONPATH=src python -m main
 ```
 
 > FFmpeg / FFprobe must be available in your system PATH.
+
+
+### Default compression profile policy
+
+The app defaults to **Balanced (CRF 23, H.264, preset medium)**, which matches common FFmpeg community usage for good quality/size tradeoff.
+
+Other presets follow common CRF ranges:
+- Highest quality: CRF 19
+- Smaller files: CRF 26
+- Tiny files: CRF 30
+
+> Note: output size can still vary depending on source complexity.

@@ -108,6 +108,8 @@ def build_transcode_command(
     output_path: str,
     crf: int = 23,
     preset: str = "medium",
+    video_codec: str = "libx264",
+    audio_bitrate: str = "128k",
 ) -> list[str]:
     """Build FFmpeg command for re-encoding/compressing media."""
     return [
@@ -118,7 +120,7 @@ def build_transcode_command(
         "-map",
         "0",
         "-c:v",
-        "libx264",
+        video_codec,
         "-preset",
         preset,
         "-crf",
@@ -126,7 +128,7 @@ def build_transcode_command(
         "-c:a",
         "aac",
         "-b:a",
-        "128k",
+        audio_bitrate,
         output_path,
     ]
 

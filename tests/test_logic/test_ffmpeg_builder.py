@@ -176,7 +176,33 @@ class TestTranscodeBuilder:
         assert "28" in cmd
         assert "-preset" in cmd
         assert "fast" in cmd
+        assert "-c:v" in cmd
+        assert "libx264" in cmd
+        assert "-b:a" in cmd
+        assert "128k" in cmd
         assert cmd[-1] == "/output/video_compressed.mp4"
+
+
+    def test_transcode_command_default_common_values(self):
+        cmd = build_transcode_command("/in.mp4", "/out.mp4")
+
+        assert "-crf" in cmd
+        assert "23" in cmd
+        assert "-preset" in cmd
+        assert "medium" in cmd
+
+    def test_transcode_command_custom_codec_audio(self):
+        cmd = build_transcode_command(
+            "/in.mp4",
+            "/out.mp4",
+            crf=24,
+            preset="medium",
+            video_codec="libx264",
+            audio_bitrate="128k",
+        )
+
+        assert "libx264" in cmd
+        assert "128k" in cmd
 
     def test_output_filename_default_extension(self):
         assert build_output_filename("/tmp/video.mp4") == "video_compressed.mp4"
