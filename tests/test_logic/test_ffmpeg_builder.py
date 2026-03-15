@@ -1,6 +1,5 @@
 """Tests for ffmpeg_builder module."""
 
-import pytest
 from logic import (
     build_cut_command,
     build_concat_command,
@@ -8,6 +7,11 @@ from logic import (
     CLIPPER_OUTPUT_NAME,
     SPLITTER_OUTPUT_NAME,
     MERGER_OUTPUT_NAME,
+    COMPRESSOR_OUTPUT_NAME,
+    build_transcode_command,
+    build_output_filename,
+    is_supported_media_file,
+    list_media_files_from_directory,
 )
 
 
@@ -155,3 +159,73 @@ class TestOutputConstants:
         assert isinstance(CLIPPER_OUTPUT_NAME, str)
         assert isinstance(SPLITTER_OUTPUT_NAME, str)
         assert isinstance(MERGER_OUTPUT_NAME, str)
+
+    def test_compressor_output_name(self):
+        """Verify compressor output folder name."""
+        assert COMPRESSOR_OUTPUT_NAME == "compressed_output"
+
+
+class TestTranscodeBuilder:
+    def test_transcode_command_has_compression_settings(self):
+        cmd = build_transcode_command(
+            "/input/video.mkv", "/output/video_compressed.mp4", crf=28, preset="fast"
+        )
+
+        assert cmd[0] == "ffmpeg"
+        assert "-crf" in cmd
+        assert "28" in cmd
+        assert "-preset" in cmd
+        assert "fast" in cmd
+        assert "-c:v" in cmd
+        assert "libx264" in cmd
+        assert "-b:a" in cmd
+        assert "128k" in cmd
+        assert cmd[-1] == "/output/video_compressed.mp4"
+
+
+    def test_transcode_command_default_common_values(self):
+        cmd = build_transcode_command("/in.mp4", "/out.mp4")
+
+        assert "-crf" in cmd
+        assert "23" in cmd
+        assert "-preset" in cmd
+        assert "medium" in cmd
+
+    def test_transcode_command_custom_codec_audio(self):
+        cmd = build_transcode_command(
+            "/in.mp4",
+            "/out.mp4",
+            crf=24,
+            preset="medium",
+            video_codec="libx264",
+            audio_bitrate="128k",
+        )
+
+        assert "libx264" in cmd
+        assert "128k" in cmd
+
+    def test_output_filename_default_extension(self):
+        assert build_output_filename("/tmp/video.mp4") == "video_compressed.mp4"
+
+    def test_output_filename_custom_extension(self):
+        assert (
+            build_output_filename("/tmp/audio.mp3", suffix="_x", extension="mov")
+            == "audio_x.mov"
+        )
+
+    def test_supported_file_detection(self):
+        assert is_supported_media_file("clip.MKV") is True
+        assert is_supported_media_file("notes.txt") is False
+
+    def test_list_media_files_from_directory(self, tmp_path):
+        media1 = tmp_path / "a.mp4"
+        media1.write_text("x")
+        media2 = tmp_path / "b.mp3"
+        media2.write_text("x")
+        junk = tmp_path / "c.txt"
+        junk.write_text("x")
+
+        files = list_media_files_from_directory(str(tmp_path), recursive=False)
+        assert str(media1) in files
+        assert str(media2) in files
+        assert str(junk) not in files
