@@ -239,6 +239,13 @@ class HubScreen(Container):
         except Exception:
             pass
 
+        try:
+            compressor = self.query_one("#compressor_screen")
+            if new_path:
+                compressor.add_videos([new_path])
+        except:
+            pass
+
     def watch_shared_export_path(self, new_path: str) -> None:
         self.hub_export_input.value = new_path
 
