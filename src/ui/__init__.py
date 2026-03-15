@@ -1,15 +1,13 @@
 """UI module exports."""
 
 from .app import VideoSliceApp
-from .screens import HubScreen, ClipperScreen, SplitterScreen, MergerScreen
+from .screens import HubScreen, CompressorScreen
 from .components import ScreenBase, open_file_dialog, Logger
 
 __all__ = [
     "VideoSliceApp",
     "HubScreen",
-    "ClipperScreen",
-    "SplitterScreen",
-    "MergerScreen",
+    "CompressorScreen",
     "ScreenBase",
     "open_file_dialog",
     "Logger",

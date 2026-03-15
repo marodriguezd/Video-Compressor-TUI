@@ -1,4 +1,4 @@
-"""Video Slice TUI main application."""
+"""Video Compressor TUI main application."""
 
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer
@@ -7,7 +7,7 @@ from ui.screens import HubScreen
 
 
 class VideoSliceApp(App):
-    """Main application class for Video Slice TUI."""
+    """Main application class for Video Compressor TUI."""
 
     CSS = """
     Screen {
@@ -33,7 +33,7 @@ class VideoSliceApp(App):
     async def on_mount(self) -> None:
         if self.start_video_path and self.start_tab:
             hub = self.query_one(HubScreen)
-            hub.active_tab = self.start_tab
+            hub.active_tab_id = self.start_tab
 
             content = hub.query_one(f"#{self.start_tab}_screen")
             if content and hasattr(content, "video_path"):
