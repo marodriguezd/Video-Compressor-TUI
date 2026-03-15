@@ -13,10 +13,15 @@ from .output_utils import (
 from .ffmpeg_builder import (
     build_cut_command,
     build_concat_command,
+    build_transcode_command,
+    build_output_filename,
+    is_supported_media_file,
+    list_media_files_from_directory,
     generate_clip_filename,
     CLIPPER_OUTPUT_NAME,
     SPLITTER_OUTPUT_NAME,
     MERGER_OUTPUT_NAME,
+    COMPRESSOR_OUTPUT_NAME,
 )
 
 __all__ = [
@@ -33,8 +38,13 @@ __all__ = [
     "ensure_output_dir",
     "build_cut_command",
     "build_concat_command",
+    "build_transcode_command",
+    "build_output_filename",
+    "is_supported_media_file",
+    "list_media_files_from_directory",
     "generate_clip_filename",
     "CLIPPER_OUTPUT_NAME",
     "SPLITTER_OUTPUT_NAME",
     "MERGER_OUTPUT_NAME",
+    "COMPRESSOR_OUTPUT_NAME",
 ]

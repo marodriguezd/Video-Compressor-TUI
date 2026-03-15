@@ -7,6 +7,7 @@ from textual.message import Message
 from ui.screens.clipper_screen import ClipperScreen
 from ui.screens.splitter_screen import SplitterScreen
 from ui.screens.merger_screen import MergerScreen
+from ui.screens.compressor_screen import CompressorScreen
 from logic.input_parsing import clean_pasted_path
 import os
 
@@ -89,7 +90,7 @@ class HubScreen(Container):
             super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield Static("🎬 MEDIA SLICE TUI", id="app-header")
+        yield Static("🗜️ VIDEO COMPRESSOR TUI", id="app-header")
         yield Label(
             "⚠️ Note: Resize terminal vertically if UI elements overlap.",
             classes="resize-warning",
@@ -131,6 +132,8 @@ class HubScreen(Container):
                 yield SplitterScreen(id="splitter_screen")
             with TabPane("🔗 Merger", id="merger"):
                 yield MergerScreen(id="merger_screen")
+            with TabPane("🗜️ Compressor", id="compressor"):
+                yield CompressorScreen(id="compressor_screen")
 
     @property
     def tabbed_content(self) -> TabbedContent:
@@ -262,6 +265,13 @@ class HubScreen(Container):
             elif not new_path:
                 merger._videos = []
                 merger.videos_table.clear()
+        except:
+            pass
+
+        try:
+            compressor = self.query_one("#compressor_screen")
+            if new_path:
+                compressor.add_videos([new_path])
         except:
             pass
 

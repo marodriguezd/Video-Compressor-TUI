@@ -1,4 +1,4 @@
-"""Video Slice TUI main application."""
+"""Video Compressor TUI main application."""
 
 from textual.app import App, ComposeResult
 from textual.widgets import Header, Footer
@@ -7,7 +7,7 @@ from ui.screens import HubScreen
 
 
 class VideoSliceApp(App):
-    """Main application class for Video Slice TUI."""
+    """Main application class for Video Compressor TUI."""
 
     CSS = """
     Screen {
