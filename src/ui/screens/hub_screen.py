@@ -159,6 +159,9 @@ class HubScreen(Container):
         return os.path.join(os.getcwd(), COMPRESSOR_OUTPUT_NAME)
 
     def _update_sources_summary(self) -> None:
+        if not hasattr(self, "hub_sources_input"):
+            return
+
         count = len(self.shared_source_paths)
         if count == 0:
             self.hub_sources_input.value = ""
@@ -169,6 +172,9 @@ class HubScreen(Container):
         self.hub_sources_input.value = f"{count} files selected"
 
     def _sync_table(self) -> None:
+        if not hasattr(self, "sources_table"):
+            return
+
         self.sources_table.clear()
         for path in self.shared_source_paths:
             self.sources_table.add_row(path)
@@ -253,8 +259,9 @@ class HubScreen(Container):
 
         elif btn == "hub_clear_export_btn":
             self.shared_export_path = ""
-            self.hub_export_input.value = self._get_default_export_path()
-            self.notify(f"Using default export path: {self.hub_export_input.value}")
+            if hasattr(self, "hub_export_input"):
+                self.hub_export_input.value = self._get_default_export_path()
+                self.notify(f"Using default export path: {self.hub_export_input.value}")
 
     def open_file_dialog(self, callback, multi: bool = False):
         import tkinter as tk
@@ -326,7 +333,7 @@ class HubScreen(Container):
         self._update_sources_summary()
         self._sync_table()
 
-        if not self.shared_export_path:
+        if not self.shared_export_path and hasattr(self, "hub_export_input"):
             self.hub_export_input.value = self._get_default_export_path()
 
         try:
@@ -337,7 +344,8 @@ class HubScreen(Container):
             pass
 
     def watch_shared_export_path(self, new_path: str) -> None:
-        self.hub_export_input.value = new_path or self._get_default_export_path()
+        if hasattr(self, "hub_export_input"):
+            self.hub_export_input.value = new_path or self._get_default_export_path()
 
         try:
             compressor = self.query_one("#compressor_screen")
