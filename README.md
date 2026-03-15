@@ -9,13 +9,13 @@
 This project is now focused only on **compression/conversion batch workflows**. Legacy tools (clipper, splitter, merger) were removed from the app UI to keep a single-purpose product.
 
 
-- Batch queue: add many files manually.
-- Bulk import from a folder (with optional recursive scan).
+- HUB tab for source management: add files/folder, include subfolders, review queue, remove entries.
+- HUB tab for export route selection (or default to first source folder).
 - Conversion between many media extensions (for example: `mkv -> mp4`, `mp3 -> mov`).
-- Compression controls for:
-  - Output format
-  - CRF
-  - Preset
+- Compressor tab focused on settings + execution:
+  - Output format selector
+  - Quality profile selector (maps to CRF presets)
+  - Encoding speed preset selector
   - Output filename suffix (`_compressed` by default)
 - Default output route behavior:
   - Uses the same source folder by default.
