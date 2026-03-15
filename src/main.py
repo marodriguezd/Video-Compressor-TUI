@@ -1,17 +1,13 @@
 #!/usr/bin/env python3
 """
-Video Slice TUI - Unified entry point for all video tools.
+Video Compressor TUI - Unified entry point.
 
 Usage:
-    python src/main.py                       # Hub with tabs
-    python src/main.py --tool clipper        # Open directly in Clipper
-    python src/main.py --tool splitter       # Open directly in Splitter
-    python src/main.py --tool merger         # Open directly in Merger
-
-    python src/main.py --tool clipper --video video.mp4
+    python src/main.py                       # Hub + compressor
+    python src/main.py --tool compressor     # Open directly in Compressor
+    python src/main.py --tool compressor --video video.mp4
 """
 
-import sys
 import argparse
 
 from ui import VideoSliceApp
@@ -19,15 +15,15 @@ from ui import VideoSliceApp
 
 def parse_args():
     parser = argparse.ArgumentParser(
-        description="Video Slice TUI - Clip, split, and merge videos"
+        description="Video Compressor TUI - Convert/compress media with FFmpeg"
     )
     parser.add_argument(
         "--tool",
         "-t",
-        choices=["clipper", "splitter", "merger"],
-        help="Start directly in the specified tool",
+        choices=["compressor"],
+        help="Start directly in the compressor tool",
     )
-    parser.add_argument("--video", "-v", help="Video file path to load on startup")
+    parser.add_argument("--video", "-v", help="Media file path to load on startup")
     return parser.parse_args()
 
 
