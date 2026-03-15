@@ -4,6 +4,11 @@
 
 ## What this first design includes
 
+## Scope
+
+This project is now focused only on **compression/conversion batch workflows**. Legacy tools (clipper, splitter, merger) were removed from the app UI to keep a single-purpose product.
+
+
 - Batch queue: add many files manually.
 - Bulk import from a folder (with optional recursive scan).
 - Conversion between many media extensions (for example: `mkv -> mp4`, `mp3 -> mov`).

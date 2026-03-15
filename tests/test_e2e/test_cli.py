@@ -31,9 +31,6 @@ class TestPythonSyntax:
         ui_files = [
             os.path.join(SRC_DIR, "ui", "app.py"),
             os.path.join(SRC_DIR, "ui", "screens", "hub_screen.py"),
-            os.path.join(SRC_DIR, "ui", "screens", "clipper_screen.py"),
-            os.path.join(SRC_DIR, "ui", "screens", "splitter_screen.py"),
-            os.path.join(SRC_DIR, "ui", "screens", "merger_screen.py"),
             os.path.join(SRC_DIR, "ui", "screens", "compressor_screen.py"),
             os.path.join(SRC_DIR, "ui", "components", "base_screen.py"),
             os.path.join(SRC_DIR, "ui", "components", "file_dialog.py"),
@@ -96,7 +93,7 @@ class TestImports:
             [
                 sys.executable,
                 "-c",
-                "from ui.screens.clipper_screen import ClipperScreen; from ui.screens.splitter_screen import SplitterScreen; from ui.screens.merger_screen import MergerScreen; from ui.screens.compressor_screen import CompressorScreen",
+                "from ui.screens.compressor_screen import CompressorScreen",
             ],
             capture_output=True,
             text=True,

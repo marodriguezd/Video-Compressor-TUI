@@ -33,7 +33,7 @@ class VideoSliceApp(App):
     async def on_mount(self) -> None:
         if self.start_video_path and self.start_tab:
             hub = self.query_one(HubScreen)
-            hub.active_tab = self.start_tab
+            hub.active_tab_id = self.start_tab
 
             content = hub.query_one(f"#{self.start_tab}_screen")
             if content and hasattr(content, "video_path"):
