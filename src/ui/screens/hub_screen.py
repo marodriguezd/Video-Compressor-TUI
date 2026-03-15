@@ -7,7 +7,6 @@ from textual.message import Message
 from ui.screens.compressor_screen import CompressorScreen
 from logic import list_media_files_from_directory, is_supported_media_file, COMPRESSOR_OUTPUT_NAME
 from logic.input_parsing import clean_pasted_path
-import os
 
 
 class HubScreen(Container):
