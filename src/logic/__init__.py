@@ -1,7 +1,7 @@
 """Logic module exports."""
 
 from .time_utils import parse_time, format_hhmmss
-from .ffmpeg_utils import get_video_duration, run_ffmpeg
+from .ffmpeg_utils import get_video_duration, run_ffmpeg, run_ffmpeg_with_progress
 from .input_parsing import clean_video_path, clean_pasted_path
 from .models import Range
 from .output_utils import (
@@ -29,6 +29,7 @@ __all__ = [
     "format_hhmmss",
     "get_video_duration",
     "run_ffmpeg",
+    "run_ffmpeg_with_progress",
     "clean_video_path",
     "clean_pasted_path",
     "Range",

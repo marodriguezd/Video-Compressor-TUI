@@ -110,9 +110,10 @@ def build_transcode_command(
     preset: str = "medium",
     video_codec: str = "libx264",
     audio_bitrate: str = "128k",
+    emit_progress: bool = False,
 ) -> list[str]:
     """Build FFmpeg command for re-encoding/compressing media."""
-    return [
+    cmd = [
         "ffmpeg",
         "-y",
         "-i",
@@ -129,8 +130,13 @@ def build_transcode_command(
         "aac",
         "-b:a",
         audio_bitrate,
-        output_path,
     ]
+
+    if emit_progress:
+        cmd.extend(["-progress", "pipe:1", "-nostats"])
+
+    cmd.append(output_path)
+    return cmd
 
 
 def build_output_filename(

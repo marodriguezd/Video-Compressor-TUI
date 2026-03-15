@@ -8,7 +8,8 @@ import os
 
 from ui.components import ScreenBase
 from logic import (
-    run_ffmpeg,
+    run_ffmpeg_with_progress,
+    get_video_duration,
     validate_output_path,
     ensure_output_dir,
     build_transcode_command,
@@ -268,7 +269,7 @@ class CompressorScreen(ScreenBase):
         not_smaller = 0
 
         self.progress_bar.display = True
-        self.progress_bar.update(total=total, progress=0)
+        self.progress_bar.update(total=100, progress=0)
 
         for idx, input_path in enumerate(self.source_paths, start=1):
             out_name = build_output_filename(
@@ -285,12 +286,30 @@ class CompressorScreen(ScreenBase):
                 preset=preset,
                 video_codec=video_codec,
                 audio_bitrate=audio_bitrate,
+                emit_progress=True,
             )
+
+            input_duration = await get_video_duration(input_path)
+
+            def update_file_progress(ratio: float) -> None:
+                global_ratio = ((idx - 1) + ratio) / total
+                percent = int(max(0, min(100, global_ratio * 100)))
+                self.progress_bar.update(progress=percent)
+                self.progress_label.update(
+                    f"🔄 {percent}% | {idx}/{total}: {os.path.basename(input_path)}"
+                )
 
             self.progress_label.update(
                 f"🔄 Processing {idx}/{total}: {os.path.basename(input_path)}"
             )
-            success = await run_ffmpeg(cmd, lambda _: None, idx, out_path)
+            success = await run_ffmpeg_with_progress(
+                cmd,
+                lambda _: None,
+                update_file_progress,
+                idx,
+                out_path,
+                input_duration,
+            )
 
             if success:
                 completed += 1
@@ -300,7 +319,7 @@ class CompressorScreen(ScreenBase):
             else:
                 failed += 1
 
-            self.progress_bar.update(progress=idx)
+            self.progress_bar.update(progress=int((idx / total) * 100))
 
         self.progress_bar.display = False
         self.progress_label.update("")

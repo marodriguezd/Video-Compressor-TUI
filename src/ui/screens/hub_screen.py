@@ -5,7 +5,7 @@ from textual.reactive import reactive
 from textual.message import Message
 
 from ui.screens.compressor_screen import CompressorScreen
-from logic import list_media_files_from_directory, is_supported_media_file
+from logic import list_media_files_from_directory, is_supported_media_file, COMPRESSOR_OUTPUT_NAME
 from logic.input_parsing import clean_pasted_path
 
 
@@ -153,6 +153,11 @@ class HubScreen(Container):
     def active_tab_id(self, value: str) -> None:
         self.tabbed_content.active = value
 
+    def _get_default_export_path(self) -> str:
+        if self.shared_source_paths:
+            return os.path.dirname(self.shared_source_paths[0])
+        return os.path.join(os.getcwd(), COMPRESSOR_OUTPUT_NAME)
+
     def _update_sources_summary(self) -> None:
         count = len(self.shared_source_paths)
         if count == 0:
@@ -248,6 +253,8 @@ class HubScreen(Container):
 
         elif btn == "hub_clear_export_btn":
             self.shared_export_path = ""
+            self.hub_export_input.value = self._get_default_export_path()
+            self.notify(f"Using default export path: {self.hub_export_input.value}")
 
     def open_file_dialog(self, callback, multi: bool = False):
         import tkinter as tk
@@ -319,6 +326,9 @@ class HubScreen(Container):
         self._update_sources_summary()
         self._sync_table()
 
+        if not self.shared_export_path:
+            self.hub_export_input.value = self._get_default_export_path()
+
         try:
             compressor = self.query_one("#compressor_screen")
             compressor.source_paths = self.shared_source_paths
@@ -327,7 +337,7 @@ class HubScreen(Container):
             pass
 
     def watch_shared_export_path(self, new_path: str) -> None:
-        self.hub_export_input.value = new_path
+        self.hub_export_input.value = new_path or self._get_default_export_path()
 
         try:
             compressor = self.query_one("#compressor_screen")

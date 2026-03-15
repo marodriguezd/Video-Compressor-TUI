@@ -191,6 +191,12 @@ class TestTranscodeBuilder:
         assert "-preset" in cmd
         assert "medium" in cmd
 
+    def test_transcode_command_emit_progress(self):
+        cmd = build_transcode_command("/in.mp4", "/out.mp4", emit_progress=True)
+        assert "-progress" in cmd
+        assert "pipe:1" in cmd
+        assert "-nostats" in cmd
+
     def test_transcode_command_custom_codec_audio(self):
         cmd = build_transcode_command(
             "/in.mp4",
