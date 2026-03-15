@@ -4,15 +4,12 @@ from textual.widgets import TabbedContent, TabPane, Static, Input, Button, Label
 from textual.reactive import reactive
 from textual.message import Message
 
-from ui.screens.clipper_screen import ClipperScreen
-from ui.screens.splitter_screen import SplitterScreen
-from ui.screens.merger_screen import MergerScreen
+from ui.screens.compressor_screen import CompressorScreen
 from logic.input_parsing import clean_pasted_path
-import os
 
 
 class HubScreen(Container):
-    """Main hub screen with tab navigation using TabbedContent."""
+    """Main hub for Video Compressor TUI."""
 
     shared_video_path = reactive("", always_update=True)
     shared_export_path = reactive("", always_update=True)
@@ -82,14 +79,14 @@ class HubScreen(Container):
     """
 
     class UpdateVideoPath(Message):
-        """Message to update the shared video path."""
+        """Message to update shared media path from child screens."""
 
         def __init__(self, path: str) -> None:
             self.path = path
             super().__init__()
 
     def compose(self) -> ComposeResult:
-        yield Static("🎬 MEDIA SLICE TUI", id="app-header")
+        yield Static("🗜️ VIDEO COMPRESSOR TUI", id="app-header")
         yield Label(
             "⚠️ Note: Resize terminal vertically if UI elements overlap.",
             classes="resize-warning",
@@ -113,24 +110,17 @@ class HubScreen(Container):
                     with Vertical(classes="hub-section"):
                         yield Label("📁 EXPORT TO")
                         self.hub_export_input = Input(
-                            placeholder="Default path (video folder)...", disabled=True
+                            placeholder="Default path (media folder)...", disabled=True
                         )
                         yield self.hub_export_input
                         with Horizontal(classes="hub-row"):
                             yield Button(
                                 "SELECT FOLDER", id="hub_browse_export_btn", variant="primary"
                             )
-                            yield Button(
-                                "REMOVE", id="hub_clear_export_btn", variant="error"
-                            )
+                            yield Button("REMOVE", id="hub_clear_export_btn", variant="error")
 
-
-            with TabPane("✂️ Clipper", id="clipper"):
-                yield ClipperScreen(id="clipper_screen")
-            with TabPane("🔪 Splitter", id="splitter"):
-                yield SplitterScreen(id="splitter_screen")
-            with TabPane("🔗 Merger", id="merger"):
-                yield MergerScreen(id="merger_screen")
+            with TabPane("🗜️ Compressor", id="compressor"):
+                yield CompressorScreen(id="compressor_screen")
 
     @property
     def tabbed_content(self) -> TabbedContent:
@@ -154,7 +144,6 @@ class HubScreen(Container):
             self.hub_export_input.value = self.shared_export_path
 
     def on_paste(self, event: Message) -> None:
-        """Handle drag and drop (terminal paste)."""
         path = clean_pasted_path(event.text)
         if path:
             self.shared_video_path = path
@@ -184,9 +173,7 @@ class HubScreen(Container):
         elif btn == "hub_clear_export_btn":
             self.shared_export_path = ""
 
-
     def open_file_dialog(self, callback):
-        """Open a native OS file selector using Tkinter in a separate thread."""
         import tkinter as tk
         from tkinter import filedialog
         import threading
@@ -210,14 +197,13 @@ class HubScreen(Container):
                     self.app.call_from_thread(callback, file_path)
 
                 root.destroy()
-            except Exception as e:
-                self.app.call_from_thread(self._show_error, f"Dialog Error: {str(e)}")
+            except Exception as exc:
+                self.app.call_from_thread(self._show_error, f"Dialog Error: {str(exc)}")
 
         thread = threading.Thread(target=run_dialog, daemon=True)
         thread.start()
 
     def open_folder_dialog(self, callback):
-        """Open a native OS folder selector using Tkinter in a separate thread."""
         import tkinter as tk
         from tkinter import filedialog
         import threading
@@ -234,8 +220,8 @@ class HubScreen(Container):
                     self.app.call_from_thread(callback, folder_path)
 
                 root.destroy()
-            except Exception as e:
-                self.app.call_from_thread(self._show_error, f"Dialog Error: {str(e)}")
+            except Exception as exc:
+                self.app.call_from_thread(self._show_error, f"Dialog Error: {str(exc)}")
 
         thread = threading.Thread(target=run_dialog, daemon=True)
         thread.start()
@@ -244,38 +230,26 @@ class HubScreen(Container):
         self.notify(message, severity="error")
 
     def watch_shared_video_path(self, new_path: str) -> None:
-        """Propagate shared video path to all screens."""
         self.hub_video_input.value = new_path
 
-        for screen_id in ["clipper_screen", "splitter_screen"]:
-            try:
-                screen = self.query_one(f"#{screen_id}")
-                if screen.video_path != new_path:
-                    screen.video_path = new_path
-            except:
-                pass
-
         try:
-            merger = self.query_one("#merger_screen")
-            if new_path and new_path not in merger._videos:
-                merger.add_videos([new_path])
-            elif not new_path:
-                merger._videos = []
-                merger.videos_table.clear()
-        except:
+            compressor = self.query_one("#compressor_screen")
+            if new_path:
+                compressor.add_videos([new_path])
+        except Exception:
             pass
 
     def watch_shared_export_path(self, new_path: str) -> None:
-        """Propagate shared export path to Clipper and Splitter."""
         self.hub_export_input.value = new_path
 
-        for screen_id in ["clipper_screen", "splitter_screen"]:
-            try:
-                screen = self.query_one(f"#{screen_id}")
-                screen._custom_output_path = new_path
-            except:
-                pass
+        try:
+            compressor = self.query_one("#compressor_screen")
+            compressor._custom_output_path = new_path
+            if new_path:
+                compressor.output_input.value = new_path
+                compressor.output_input.disabled = False
+        except Exception:
+            pass
 
     def on_hub_screen_update_video_path(self, message: UpdateVideoPath) -> None:
-        """Handle update message from child screens."""
         self.shared_video_path = message.path
