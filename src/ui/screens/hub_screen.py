@@ -3,6 +3,7 @@ from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.widgets import TabbedContent, TabPane, Static, Input, Button, Label, DataTable, Checkbox
 from textual.reactive import reactive
 from textual.message import Message
+import os
 
 from ui.screens.compressor_screen import CompressorScreen
 from logic import list_media_files_from_directory, is_supported_media_file, COMPRESSOR_OUTPUT_NAME
