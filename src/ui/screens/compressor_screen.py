@@ -1,8 +1,8 @@
 """Compressor settings screen for batch conversion/compression with FFmpeg."""
 
 from textual.app import ComposeResult
-from textual.containers import Horizontal, Vertical
-from textual.widgets import Button, Static, Label, ProgressBar, Input, Select
+from textual.containers import Horizontal, Vertical, VerticalScroll
+from textual.widgets import Button, Static, Label, ProgressBar, Input, Select, TabbedContent, TabPane
 from textual import work
 import os
 
@@ -34,9 +34,19 @@ class CompressorScreen(ScreenBase):
     CSS = (
         ScreenBase.CSS
         + """
-    .settings-section {
-        height: auto;
-        margin-bottom: 1;
+    .screen-container {
+        height: 1fr;
+        padding: 1 2;
+    }
+    #compressor-scroll {
+        height: 1fr;
+    }
+    #compressor-tabs {
+        height: 1fr;
+    }
+    #compressor-tabs > TabPane {
+        padding: 1;
+        height: 1fr;
     }
     .summary-box {
         border: round $primary;
@@ -56,6 +66,7 @@ class CompressorScreen(ScreenBase):
     }
     .settings-grid > .input-group {
         height: auto;
+        min-height: 5;
     }
     .settings-grid Label {
         margin-bottom: 1;
@@ -65,71 +76,98 @@ class CompressorScreen(ScreenBase):
     Select, Input {
         width: 1fr;
     }
+    .run-controls {
+        margin-top: 1;
+        height: auto;
+    }
+    .run-controls > Button {
+        width: 24;
+        margin: 0;
+    }
+    .progress-section {
+        dock: none;
+        height: auto;
+        min-height: 3;
+        margin-top: 1;
+    }
     """
     )
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
     def _compose_content(self) -> ComposeResult:
         with Vertical(classes="screen-container"):
-            yield Static("🗜️ COMPRESSOR SETTINGS", classes="screen-title")
+            yield Static("🗜️ COMPRESSOR", classes="screen-title")
 
-            with Vertical(classes="summary-box"):
-                self.summary_sources = Static("Sources: 0 files")
-                self.summary_export = Static("Export: default (source folder)")
-                yield self.summary_sources
-                yield self.summary_export
+            with VerticalScroll(id="compressor-scroll"):
+                with TabbedContent(initial="settings", id="compressor-tabs"):
+                    with TabPane("🎛️ Settings", id="settings"):
+                        with Vertical(classes="summary-box"):
+                            self.summary_sources = Static("Sources: 0 files")
+                            self.summary_export = Static("Export: default (source folder)")
+                            yield self.summary_sources
+                            yield self.summary_export
 
-            with Vertical(classes="settings-section"):
-                with Vertical(classes="settings-grid"):
-                    with Vertical(classes="input-group"):
-                        yield Label("Output format")
-                        self.format_select = Select(
-                            [("MP4", "mp4"), ("MOV", "mov"), ("MKV", "mkv"), ("WEBM", "webm")],
-                            value="mp4",
-                        )
-                        yield self.format_select
+                        with Vertical(classes="settings-grid"):
+                            with Vertical(classes="input-group"):
+                                yield Label("Output format")
+                                self.format_select = Select(
+                                    [
+                                        ("MP4", "mp4"),
+                                        ("MOV", "mov"),
+                                        ("MKV", "mkv"),
+                                        ("WEBM", "webm"),
+                                    ],
+                                    value="mp4",
+                                )
+                                yield self.format_select
 
-                    with Vertical(classes="input-group"):
-                        yield Label("Quality profile")
-                        self.quality_select = Select(
-                            [
-                                ("High quality", "high"),
-                                ("Balanced", "balanced"),
-                                ("Small size", "small"),
-                                ("Tiny size", "tiny"),
-                            ],
-                            value="balanced",
-                        )
-                        yield self.quality_select
+                            with Vertical(classes="input-group"):
+                                yield Label("Quality profile")
+                                self.quality_select = Select(
+                                    [
+                                        ("High quality", "high"),
+                                        ("Balanced", "balanced"),
+                                        ("Small size", "small"),
+                                        ("Tiny size", "tiny"),
+                                    ],
+                                    value="balanced",
+                                )
+                                yield self.quality_select
 
-                    with Vertical(classes="input-group"):
-                        yield Label("Encoding speed preset")
-                        self.preset_select = Select(
-                            [
-                                ("fast", "fast"),
-                                ("medium", "medium"),
-                                ("slow", "slow"),
-                            ],
-                            value="medium",
-                        )
-                        yield self.preset_select
+                            with Vertical(classes="input-group"):
+                                yield Label("Encoding speed preset")
+                                self.preset_select = Select(
+                                    [
+                                        ("fast", "fast"),
+                                        ("medium", "medium"),
+                                        ("slow", "slow"),
+                                    ],
+                                    value="medium",
+                                )
+                                yield self.preset_select
 
-                    with Vertical(classes="input-group"):
-                        yield Label("Filename suffix")
-                        self.suffix_input = Input(value="_compressed")
-                        yield self.suffix_input
+                            with Vertical(classes="input-group"):
+                                yield Label("Filename suffix")
+                                self.suffix_input = Input(value="_compressed")
+                                yield self.suffix_input
 
-            with Horizontal(classes="export-row"):
-                yield Button("START BATCH", id="export_btn", variant="success")
+                    with TabPane("🚀 Run", id="run"):
+                        with Vertical(classes="summary-box"):
+                            self.run_sources = Static("Sources: 0 files")
+                            self.run_export = Static("Export: default (source folder)")
+                            self.run_profile = Static("Profile: balanced | format: mp4 | preset: medium")
+                            yield self.run_sources
+                            yield self.run_export
+                            yield self.run_profile
 
-            with Vertical(classes="progress-section"):
-                self.progress_label = Static("")
-                yield self.progress_label
-                self.progress_bar = ProgressBar(total=100, show_eta=False)
-                self.progress_bar.display = False
-                yield self.progress_bar
+                        with Horizontal(classes="run-controls"):
+                            yield Button("START BATCH", id="export_btn", variant="success")
+
+                        with Vertical(classes="progress-section"):
+                            self.progress_label = Static("")
+                            yield self.progress_label
+                            self.progress_bar = ProgressBar(total=100, show_eta=False)
+                            self.progress_bar.display = False
+                            yield self.progress_bar
 
     async def on_mount(self) -> None:
         await super().on_mount()
@@ -145,6 +183,21 @@ class CompressorScreen(ScreenBase):
         except Exception:
             pass
 
+    def _selected_values(self) -> tuple[str, str, str]:
+        out_format = self.format_select.value
+        if out_format == Select.BLANK:
+            out_format = "mp4"
+
+        quality_key = self.quality_select.value
+        if quality_key == Select.BLANK:
+            quality_key = "balanced"
+
+        preset = self.preset_select.value
+        if preset == Select.BLANK:
+            preset = "medium"
+
+        return str(out_format), str(quality_key), str(preset)
+
     def _on_hub_sources_changed(self, paths: tuple) -> None:
         self.source_paths = paths
         self._refresh_summary()
@@ -154,13 +207,24 @@ class CompressorScreen(ScreenBase):
         self._refresh_summary()
 
     def _refresh_summary(self) -> None:
+        out_format, quality_key, preset = self._selected_values()
         count = len(self.source_paths)
-        self.summary_sources.update(f"Sources: {count} file(s)")
+        export = self.export_path or "default (source folder)"
 
-        if self.export_path:
-            self.summary_export.update(f"Export: {self.export_path}")
-        else:
-            self.summary_export.update("Export: default (source folder)")
+        self.summary_sources.update(f"Sources: {count} file(s)")
+        self.summary_export.update(f"Export: {export}")
+
+        self.run_sources.update(f"Sources: {count} file(s)")
+        self.run_export.update(f"Export: {export}")
+        self.run_profile.update(
+            f"Profile: {quality_key} | format: {out_format} | preset: {preset}"
+        )
+
+    def on_select_changed(self, _: Select.Changed) -> None:
+        self._refresh_summary()
+
+    def on_input_changed(self, _: Input.Changed) -> None:
+        self._refresh_summary()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
         if event.button.id == "export_btn":
@@ -179,20 +243,8 @@ class CompressorScreen(ScreenBase):
             self.show_status("⚠️ Add source files first in HUB", "warning")
             return
 
-        out_format = self.format_select.value
-        if out_format == Select.BLANK:
-            out_format = "mp4"
-
-        quality_key = self.quality_select.value
-        if quality_key == Select.BLANK:
-            quality_key = "balanced"
-
-        crf = QUALITY_PROFILES.get(str(quality_key), 23)
-
-        preset = self.preset_select.value
-        if preset == Select.BLANK:
-            preset = "medium"
-
+        out_format, quality_key, preset = self._selected_values()
+        crf = QUALITY_PROFILES.get(quality_key, 23)
         suffix = self.suffix_input.value.strip() or "_compressed"
 
         out_dir = self._get_output_directory()
@@ -224,7 +276,7 @@ class CompressorScreen(ScreenBase):
                 input_path=input_path,
                 output_path=out_path,
                 crf=crf,
-                preset=str(preset),
+                preset=preset,
             )
 
             self.progress_label.update(

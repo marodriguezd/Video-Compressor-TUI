@@ -1,5 +1,5 @@
 from textual.app import ComposeResult
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Container, Horizontal, Vertical, VerticalScroll
 from textual.widgets import TabbedContent, TabPane, Static, Input, Button, Label, DataTable, Checkbox
 from textual.reactive import reactive
 from textual.message import Message
@@ -31,10 +31,13 @@ class HubScreen(Container):
     }
     .hub-content {
         width: 100;
-        height: auto;
+        height: 1fr;
         padding: 1 2;
         border: round $accent;
         background: $surface;
+    }
+    #hub-scroll {
+        height: 1fr;
     }
     .hub-section {
         margin-bottom: 1;
@@ -68,7 +71,8 @@ class HubScreen(Container):
         background: $boost;
     }
     DataTable {
-        height: 10;
+        min-height: 6;
+        height: auto;
         margin: 1 0;
     }
     """
@@ -90,48 +94,49 @@ class HubScreen(Container):
         with TabbedContent(initial="hub"):
             with TabPane("🏠 HUB", id="hub"):
                 with Vertical(classes="hub-content"):
-                    with Vertical(classes="hub-section"):
-                        yield Label("📁 SOURCE FILES")
-                        self.hub_sources_input = Input(
-                            placeholder="No files selected...", disabled=True
-                        )
-                        yield self.hub_sources_input
-
-                        with Horizontal(classes="hub-row"):
-                            yield Button("ADD FILES", id="hub_add_files_btn", variant="primary")
-                            yield Button("ADD FOLDER", id="hub_add_folder_btn", variant="primary")
-                            yield Button("CLEAR ALL", id="hub_clear_sources_btn", variant="error")
-
-                        self.scan_subdirs_cb = Checkbox(
-                            "Include subfolders when adding folder", value=True
-                        )
-                        yield self.scan_subdirs_cb
-
-                        self.sources_table = DataTable()
-                        self.sources_table.add_columns("Source file")
-                        self.sources_table.cursor_type = "row"
-                        yield self.sources_table
-
-                        with Horizontal(classes="hub-row"):
-                            yield Button(
-                                "REMOVE SELECTED",
-                                id="hub_del_source_btn",
-                                variant="error",
+                    with VerticalScroll(id="hub-scroll"):
+                        with Vertical(classes="hub-section"):
+                            yield Label("📁 SOURCE FILES")
+                            self.hub_sources_input = Input(
+                                placeholder="No files selected...", disabled=True
                             )
+                            yield self.hub_sources_input
 
-                    with Vertical(classes="hub-section"):
-                        yield Label("📁 EXPORT TO")
-                        self.hub_export_input = Input(
-                            placeholder="Default: first source folder", disabled=True
-                        )
-                        yield self.hub_export_input
-                        with Horizontal(classes="hub-row"):
-                            yield Button(
-                                "SELECT FOLDER", id="hub_browse_export_btn", variant="primary"
+                            with Horizontal(classes="hub-row"):
+                                yield Button("ADD FILES", id="hub_add_files_btn", variant="primary")
+                                yield Button("ADD FOLDER", id="hub_add_folder_btn", variant="primary")
+                                yield Button("CLEAR ALL", id="hub_clear_sources_btn", variant="error")
+
+                            self.scan_subdirs_cb = Checkbox(
+                                "Include subfolders when adding folder", value=True
                             )
-                            yield Button(
-                                "USE DEFAULT", id="hub_clear_export_btn", variant="warning"
+                            yield self.scan_subdirs_cb
+
+                            self.sources_table = DataTable()
+                            self.sources_table.add_columns("Source file")
+                            self.sources_table.cursor_type = "row"
+                            yield self.sources_table
+
+                            with Horizontal(classes="hub-row"):
+                                yield Button(
+                                    "REMOVE SELECTED",
+                                    id="hub_del_source_btn",
+                                    variant="error",
+                                )
+
+                        with Vertical(classes="hub-section"):
+                            yield Label("📁 EXPORT TO")
+                            self.hub_export_input = Input(
+                                placeholder="Default: first source folder", disabled=True
                             )
+                            yield self.hub_export_input
+                            with Horizontal(classes="hub-row"):
+                                yield Button(
+                                    "SELECT FOLDER", id="hub_browse_export_btn", variant="primary"
+                                )
+                                yield Button(
+                                    "USE DEFAULT", id="hub_clear_export_btn", variant="warning"
+                                )
 
             with TabPane("🗜️ Compressor", id="compressor"):
                 yield CompressorScreen(id="compressor_screen")
@@ -317,6 +322,7 @@ class HubScreen(Container):
         try:
             compressor = self.query_one("#compressor_screen")
             compressor.source_paths = self.shared_source_paths
+            compressor._refresh_summary()
         except Exception:
             pass
 
@@ -326,6 +332,7 @@ class HubScreen(Container):
         try:
             compressor = self.query_one("#compressor_screen")
             compressor.export_path = new_path
+            compressor._refresh_summary()
         except Exception:
             pass
 
